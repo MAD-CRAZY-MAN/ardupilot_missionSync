@@ -44,7 +44,7 @@ void AP_Timesync::handle_ptp_timesync(GCS_MAVLINK &link, mavlink_ptp_timesync_t 
         }
         case TAKEOFF_TIME: {
                 takeoff_time.time_sec = packet.time_sec;
-                hal.uartA->printf("takeoff time: %d", takeoff_time.time_sec);
+                //hal.uartA->printf("takeoff time: %d", takeoff_time.time_sec);
         }
         default:
             break;
