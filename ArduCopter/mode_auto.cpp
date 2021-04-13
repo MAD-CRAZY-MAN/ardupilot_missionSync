@@ -67,7 +67,7 @@ void ModeAuto::run()
         //동기화 구분 필요(파라미터)
         if((millis()/1000)>=AP::ptp().takeoff_time.time_sec){
             takeoff_run();//주어진 takeoff start time이 지났다면 takeoff 시작
-            hal.uartA->printf("takeoff: %d, now: %d", AP::ptp().takeoff_time.time_sec, millis()/1000);
+            //hal.uartA->printf("takeoff: %d, now: %d", AP::ptp().takeoff_time.time_sec, millis()/1000);
         }
         break;
 
@@ -148,7 +148,7 @@ void ModeAuto::rtl_start()
 void ModeAuto::takeoff_start(const Location& dest_loc)
 {
     _mode = Auto_TakeOff;
-
+    
     Location dest(dest_loc);
 
     if (!copter.current_loc.initialised()) {
@@ -178,6 +178,10 @@ void ModeAuto::takeoff_start(const Location& dest_loc)
     if (alt_target < 100) {
         dest.set_alt_cm(100, Location::AltFrame::ABOVE_HOME);
     }
+    hal.uartA->printf("alt target: %d\r\n", alt_target);
+    uint16_t up_speed = alt_target / target_time;
+    hal.uartA->printf("desired up speed: %d\r\n", up_speed);
+    copter.wp_nav->set_speed_up(up_speed);
 
     // set waypoint controller target
     if (!wp_nav->set_wp_destination(dest)) {
@@ -1519,7 +1523,7 @@ bool ModeAuto::verify_takeoff()
     if (reached_wp_dest) {
         if((millis()/1000)>=next_start_time)
         {
-            hal.uartA->printf("takeoff complete! time is %d", next_start_time);
+            //hal.uartA->printf("takeoff complete! time is %d", next_start_time);
             takeoff_complete = true;
         }
     }
