@@ -1123,11 +1123,27 @@ Location ModeAuto::loc_from_cmd(const AP_Mission::Mission_Command& cmd) const
 void ModeAuto::do_nav_wp(const AP_Mission::Mission_Command& cmd)
 {
     Location target_loc = loc_from_cmd(cmd);
+    Location current_loc; //동기화 구분 필요(파라미터)
+
+    AP_Mission::Mission_Command current_cmd;
 
     // this will be used to remember the time in millis after we reach or pass the WP.
     loiter_time = 0;
     // this is the delay, stored in seconds
     loiter_time_max = cmd.p1;
+
+    mission.get_next_nav_cmd(cmd.index-1, current_cmd);
+    current_loc = loc_from_cmd(current_cmd);
+    Vector3f dist = current_loc.get_distance_NED(target_loc);
+
+    uint16_t target_speed = (dist.length()*100)/target_time;
+    copter.wp_nav->set_speed_xy(target_speed);
+    copter.wp_nav->set_speed_up(target_speed);
+    copter.wp_nav->set_speed_down(target_speed);
+    
+    hal.uartA->printf("target speed: %d\r\n", target_speed);
+    hal.uartA->printf("alt distance: %fm\r\n", dist.length());
+    loiter_time_max = 1; //no fast waypoint
 
     // Set wp navigation target
     wp_start(target_loc);
