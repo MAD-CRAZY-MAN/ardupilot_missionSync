@@ -55,7 +55,8 @@ bool ModeAuto::init(bool ignore_checks)
 //      should be called at 100hz or more
 //      relies on run_autopilot being called at 10hz which handles decision making and non-navigation related commands
 uint32_t Mode::next_start_time = 0;
-uint32_t Mode::delay = 20;
+uint32_t Mode::delay = 10;
+uint32_t Mode::target_time = 10;
 bool Mode::takeoff_complete = 0;
 void ModeAuto::run()
 {
@@ -1509,7 +1510,7 @@ bool ModeAuto::verify_takeoff()
     
     if(!next_start_time) //next start time이 초기화가 안되있다면 takeoff time을 기준으로 초기화
     {
-        next_start_time = AP::ptp().takeoff_time.time_sec + delay; //need modify, delay -> parameter
+        next_start_time = AP::ptp().takeoff_time.time_sec + target_time + delay; //need modify, delay -> parameter
     }
     // retract the landing gear
     if (reached_wp_dest) {
@@ -1815,7 +1816,7 @@ bool ModeAuto::verify_nav_wp(const AP_Mission::Mission_Command& cmd)
 
     // start timer if necessary
     if (loiter_time == 0) {
-        next_start_time += delay;
+        next_start_time += target_time + delay;
         loiter_time_max = next_start_time;
         loiter_time = millis();
 		if (loiter_time_max > 0) {

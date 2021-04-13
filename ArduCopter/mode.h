@@ -11,6 +11,7 @@ class Mode {
 public:
     static uint32_t next_start_time;
     static uint32_t delay;
+    static uint32_t target_time;
     static bool takeoff_complete;
     // Auto Pilot Modes enumeration
     enum class Number : uint8_t {

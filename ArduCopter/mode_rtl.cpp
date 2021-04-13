@@ -193,7 +193,7 @@ void ModeRTL::loiterathome_start()
     _state = RTL_LoiterAtHome;
     _state_complete = false;
     _loiter_start_time = next_start_time;
-    next_start_time += delay;
+    next_start_time += target_time + delay;
 
     // yaw back to initial take-off heading yaw unless pilot has already overridden yaw
     if(auto_yaw.default_mode(true) != AUTO_YAW_HOLD) {
