@@ -69,6 +69,8 @@ void ModeRTL::run(bool disarm_on_land)
             // do nothing
             break;
         case RTL_Land:
+            AP::ptp().takeoff_time.time_sec = 0;
+            next_start_time = 0;
             // do nothing - rtl_land_run will take care of disarming motors
             break;
         }
@@ -190,7 +192,8 @@ void ModeRTL::loiterathome_start()
 {
     _state = RTL_LoiterAtHome;
     _state_complete = false;
-    _loiter_start_time = millis();
+    _loiter_start_time = next_start_time;
+    next_start_time += delay;
 
     // yaw back to initial take-off heading yaw unless pilot has already overridden yaw
     if(auto_yaw.default_mode(true) != AUTO_YAW_HOLD) {
@@ -204,6 +207,53 @@ void ModeRTL::loiterathome_start()
 //      called by rtl_run at 100hz or more
 void ModeRTL::loiterathome_run()
 {
+        // if not armed set throttle to zero and exit immediately
+    if (is_disarmed_or_landed()) {
+        make_safe_spool_down();
+        return;
+    }
+
+    // process pilot's yaw input
+    float target_yaw_rate = 0;
+    if (!copter.failsafe.radio) {
+        // get pilot's desired yaw rate
+        target_yaw_rate = get_pilot_desired_yaw_rate(channel_yaw->get_control_in());
+        if (!is_zero(target_yaw_rate)) {
+            auto_yaw.set_mode(AUTO_YAW_HOLD);
+        }
+    }
+
+    // set motors to full range
+    motors->set_desired_spool_state(AP_Motors::DesiredSpoolState::THROTTLE_UNLIMITED);
+
+    // run waypoint controller
+    copter.failsafe_terrain_set_status(wp_nav->update_wpnav());
+
+    // call z-axis position controller (wpnav should have already updated it's alt target)
+    pos_control->update_z_controller();
+
+    // call attitude controller
+    if (auto_yaw.mode() == AUTO_YAW_HOLD) {
+        // roll & pitch from waypoint controller, yaw rate from pilot
+        attitude_control->input_euler_angle_roll_pitch_euler_rate_yaw(wp_nav->get_roll(), wp_nav->get_pitch(), target_yaw_rate);
+    }else{
+        // roll, pitch from waypoint controller, yaw heading from auto_heading()
+        attitude_control->input_euler_angle_roll_pitch_yaw(wp_nav->get_roll(), wp_nav->get_pitch(), auto_yaw.yaw(),true);
+    }
+
+    // check if we've completed this stage of RTL
+    if ((millis()/1000) >= next_start_time) {
+        if (auto_yaw.mode() == AUTO_YAW_RESETTOARMEDYAW) {
+            // check if heading is within 2 degrees of heading when vehicle was armed
+            if (abs(wrap_180_cd(ahrs.yaw_sensor-copter.initial_armed_bearing)) <= 200) {
+                _state_complete = true;
+            }
+        } else {
+            // we have loitered long enough
+            _state_complete = true;
+        }
+    }
+    /* time sync 안했을 때 구분 필요(파라미터)
     // if not armed set throttle to zero and exit immediately
     if (is_disarmed_or_landed()) {
         make_safe_spool_down();
@@ -249,7 +299,7 @@ void ModeRTL::loiterathome_run()
             // we have loitered long enough
             _state_complete = true;
         }
-    }
+    }*/
 }
 
 // rtl_descent_start - initialise descent to final alt
