@@ -60,7 +60,11 @@ void ModeAuto::run()
     switch (_mode) {
 
     case Auto_TakeOff:
-        takeoff_run();
+        //동기화 구분 필요(파라미터)
+        if((millis()/1000)>=AP::ptp().takeoff_time.time_sec){
+            takeoff_run();//주어진 takeoff start time이 지났다면 takeoff 시작
+            hal.uartA->printf("takeoff: %d, now: %d", AP::ptp().takeoff_time.time_sec, millis()/1000);
+        }
         break;
 
     case Auto_WP:
