@@ -54,6 +54,9 @@ bool ModeAuto::init(bool ignore_checks)
 // auto_run - runs the auto controller
 //      should be called at 100hz or more
 //      relies on run_autopilot being called at 10hz which handles decision making and non-navigation related commands
+uint32_t Mode::next_start_time = 0;
+uint32_t Mode::delay = 20;
+bool Mode::takeoff_complete = 0;
 void ModeAuto::run()
 {
     // call the correct auto controller
@@ -1503,13 +1506,24 @@ bool ModeAuto::verify_takeoff()
 {
     // have we reached our target altitude?
     const bool reached_wp_dest = copter.wp_nav->reached_wp_destination();
-
+    
+    if(!next_start_time) //next start time이 초기화가 안되있다면 takeoff time을 기준으로 초기화
+    {
+        next_start_time = AP::ptp().takeoff_time.time_sec + delay; //need modify, delay -> parameter
+    }
     // retract the landing gear
     if (reached_wp_dest) {
         copter.landinggear.retract_after_takeoff();
     }
+    if (reached_wp_dest) {
+        if((millis()/1000)>=next_start_time)
+        {
+            hal.uartA->printf("takeoff complete! time is %d", next_start_time);
+            takeoff_complete = true;
+        }
+    }
 
-    return reached_wp_dest;
+    return reached_wp_dest && takeoff_complete;
 }
 
 // verify_land - returns true if landing has been completed
