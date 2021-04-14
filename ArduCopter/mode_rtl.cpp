@@ -215,7 +215,7 @@ void ModeRTL::loiterathome_start()
     } else {
         auto_yaw.set_mode(AUTO_YAW_HOLD);
     }
-    
+    /*
     uint16_t target_speed_down = rtl_path.return_target.alt/target_time;
     if(target_speed_down>500)
         target_speed_down = 500;
@@ -223,7 +223,7 @@ void ModeRTL::loiterathome_start()
         target_speed_down = 50;
 
     copter.wp_nav->set_speed_down(target_speed_down);
-    hal.uartA->printf("land speed: %dm/s\r\n", target_speed_down); 
+    hal.uartA->printf("land speed: %dm/s\r\n", target_speed_down); */
 }
 
 // rtl_climb_return_descent_run - implements the initial climb, return home and descent portions of RTL which all rely on the wp controller
