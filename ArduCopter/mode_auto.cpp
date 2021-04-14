@@ -54,6 +54,7 @@ bool ModeAuto::init(bool ignore_checks)
 // auto_run - runs the auto controller
 //      should be called at 100hz or more
 //      relies on run_autopilot being called at 10hz which handles decision making and non-navigation related commands
+Location Mode::last_wp_loc;
 uint32_t Mode::next_start_time = 0;
 uint32_t Mode::delay = 10;
 uint32_t Mode::target_time = 10;
@@ -178,9 +179,14 @@ void ModeAuto::takeoff_start(const Location& dest_loc)
     if (alt_target < 100) {
         dest.set_alt_cm(100, Location::AltFrame::ABOVE_HOME);
     }
-    hal.uartA->printf("alt target: %d\r\n", alt_target);
+    
+    hal.uartA->printf("alt target: %dm\r\n", alt_target/100);
     uint16_t up_speed = alt_target / target_time;
-    hal.uartA->printf("desired up speed: %d\r\n", up_speed);
+    if(up_speed>500)
+        up_speed = 500;
+    else if(up_speed<20)
+        up_speed = 20;
+    hal.uartA->printf("desired up speed: %dm/s\r\n", up_speed);
     copter.wp_nav->set_speed_up(up_speed);
 
     // set waypoint controller target
@@ -258,7 +264,7 @@ void ModeAuto::land_start(const Vector3f& destination)
         pos_control->set_alt_target(inertial_nav.get_altitude());
         pos_control->set_desired_velocity_z(inertial_nav.get_velocity_z());
     }
-
+    
     // initialise yaw
     auto_yaw.set_mode(AUTO_YAW_HOLD);
 
@@ -446,7 +452,7 @@ bool ModeAuto::start_command(const AP_Mission::Mission_Command& cmd)
         break;
 
     case MAV_CMD_NAV_RETURN_TO_LAUNCH:             //20
-        do_RTL();
+        do_RTL(cmd);
         break;
 
     case MAV_CMD_NAV_SPLINE_WAYPOINT:           // 82  Navigate to Waypoint using spline
@@ -1137,12 +1143,19 @@ void ModeAuto::do_nav_wp(const AP_Mission::Mission_Command& cmd)
     Vector3f dist = current_loc.get_distance_NED(target_loc);
 
     uint16_t target_speed = (dist.length()*100)/target_time;
+    if(target_speed>500)
+    {
+        target_speed = 500;
+        //가속도 추가
+    }
+    else if(target_speed<20)
+        target_speed = 50; //최소 속도
     copter.wp_nav->set_speed_xy(target_speed);
     copter.wp_nav->set_speed_up(target_speed);
     copter.wp_nav->set_speed_down(target_speed);
-    
-    hal.uartA->printf("target speed: %d\r\n", target_speed);
+
     hal.uartA->printf("alt distance: %fm\r\n", dist.length());
+    hal.uartA->printf("target speed: %dm/s\r\n", target_speed);
     loiter_time_max = 1; //no fast waypoint
 
     // Set wp navigation target
@@ -1512,8 +1525,12 @@ void ModeAuto::do_payload_place(const AP_Mission::Mission_Command& cmd)
 }
 
 // do_RTL - start Return-to-Launch
-void ModeAuto::do_RTL(void)
+void ModeAuto::do_RTL(const AP_Mission::Mission_Command& cmd)
 {
+    AP_Mission::Mission_Command last_wp_cmd;
+
+    mission.get_next_nav_cmd(cmd.index-1, last_wp_cmd);
+    last_wp_loc = loc_from_cmd(last_wp_cmd);
     // start rtl in auto flight mode
     rtl_start();
 }

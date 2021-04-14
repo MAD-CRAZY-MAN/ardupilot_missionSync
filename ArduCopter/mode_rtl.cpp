@@ -22,6 +22,7 @@ bool ModeRTL::init(bool ignore_checks)
     _state = RTL_Starting;
     _state_complete = true; // see run() method below
     terrain_following_allowed = !copter.failsafe.terrain;
+    
     return true;
 }
 
@@ -113,10 +114,10 @@ void ModeRTL::climb_start()
     _state_complete = false;
 
     // RTL_SPEED == 0 means use WPNAV_SPEED
-    if (g.rtl_speed_cms != 0) {
+    if (g.rtl_speed_cms != 0) {//동기화 구분 필요
         wp_nav->set_speed_xy(g.rtl_speed_cms);
     }
-
+    
     // set the destination
     if (!wp_nav->set_wp_destination(rtl_path.climb_target)) {
         // this should not happen because rtl_build_path will have checked terrain data was available
@@ -141,6 +142,19 @@ void ModeRTL::return_start()
         restart_without_terrain();
     }
 
+    Vector2f dist = last_wp_loc.get_distance_NE(rtl_path.return_target);
+
+    uint16_t target_speed_xy = (dist.length()*100)/target_time;
+    if(target_speed_xy>500)
+        target_speed_xy = 500;
+    if(target_speed_xy<20)
+        target_speed_xy = 50;
+
+    copter.wp_nav->set_speed_xy(target_speed_xy);
+    
+    hal.uartA->printf("distance: %dm\r\n", dist.length());
+    hal.uartA->printf("return speed: %dm/s\r\n", target_speed_xy);
+    
     // initialise yaw to point home (maybe)
     auto_yaw.set_mode_to_default(true);
 }
@@ -431,7 +445,6 @@ void ModeRTL::land_run(bool disarm_on_land)
         loiter_nav->init_target();
         return;
     }
-
     // set motors to full range
     motors->set_desired_spool_state(AP_Motors::DesiredSpoolState::THROTTLE_UNLIMITED);
 
@@ -456,7 +469,6 @@ void ModeRTL::build_path()
 
     // descent target is below return target at rtl_alt_final
     rtl_path.descent_target = Location(rtl_path.return_target.lat, rtl_path.return_target.lng, g.rtl_alt_final, Location::AltFrame::ABOVE_HOME);
-
     // set land flag
     rtl_path.land = g.rtl_alt_final <= 0;
 }
