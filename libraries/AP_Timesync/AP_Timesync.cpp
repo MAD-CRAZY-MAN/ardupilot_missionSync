@@ -9,7 +9,7 @@ _timespec AP_Timesync::t4;
 _timespec AP_Timesync::base_time = {1617202800, 0};
 _timespec AP_Timesync::sync_time;
 
-_timespec AP_Timesync::takeoff_time = {60, 0}; //need modify
+_timespec AP_Timesync::takeoff_time = {0, 0};
 
 uint64_t AP_Timesync::base_boot = 0;
 
@@ -44,7 +44,7 @@ void AP_Timesync::handle_ptp_timesync(GCS_MAVLINK &link, mavlink_ptp_timesync_t 
         }
         case TAKEOFF_TIME: {
                 takeoff_time.time_sec = packet.time_sec;
-                //hal.uartA->printf("takeoff time: %d", takeoff_time.time_sec);
+                hal.uartA->printf("takeoff time: %d\r\n", takeoff_time.time_sec);
         }
         default:
             break;

@@ -178,7 +178,7 @@ void GCS_MAVLINK::handle_request_data_stream(const mavlink_message_t &msg)
         stream_id = STREAM_EXTRA3;
         break;
     }
-
+    
     if (stream_id == NUM_STREAMS) {
         // asked to set rate on unknown stream (or all were set already)
         return;

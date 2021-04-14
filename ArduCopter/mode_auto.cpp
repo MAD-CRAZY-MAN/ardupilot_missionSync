@@ -66,7 +66,9 @@ void ModeAuto::run()
 
     case Auto_TakeOff:
         //동기화 구분 필요(파라미터)
-        if((millis()/1000)>=AP::ptp().takeoff_time.time_sec){
+        _timespec get_time;
+        AP::ptp().get_time(&get_time);
+        if(get_time.time_sec>=AP::ptp().takeoff_time.time_sec){
             takeoff_run();//주어진 takeoff start time이 지났다면 takeoff 시작
             //hal.uartA->printf("takeoff: %d, now: %d", AP::ptp().takeoff_time.time_sec, millis()/1000);
         }
@@ -1544,7 +1546,7 @@ bool ModeAuto::verify_takeoff()
 {
     // have we reached our target altitude?
     const bool reached_wp_dest = copter.wp_nav->reached_wp_destination();
-    
+    _timespec get_time;
     if(!next_start_time) //next start time이 초기화가 안되있다면 takeoff time을 기준으로 초기화
     {
         next_start_time = AP::ptp().takeoff_time.time_sec + target_time + delay; //need modify, delay -> parameter
@@ -1554,7 +1556,8 @@ bool ModeAuto::verify_takeoff()
         copter.landinggear.retract_after_takeoff();
     }
     if (reached_wp_dest) {
-        if((millis()/1000)>=next_start_time)
+        AP::ptp().get_time(&get_time);
+        if(get_time.time_sec>=next_start_time)
         {
             //hal.uartA->printf("takeoff complete! time is %d", next_start_time);
             takeoff_complete = true;
@@ -1846,6 +1849,7 @@ bool ModeAuto::verify_yaw()
 // verify_nav_wp - check if we have reached the next way point
 bool ModeAuto::verify_nav_wp(const AP_Mission::Mission_Command& cmd)
 {
+    _timespec get_time;
     // check if we have reached the waypoint
     if ( !copter.wp_nav->reached_wp_destination() ) {
         return false;
@@ -1855,15 +1859,16 @@ bool ModeAuto::verify_nav_wp(const AP_Mission::Mission_Command& cmd)
     if (loiter_time == 0) {
         next_start_time += target_time + delay;
         loiter_time_max = next_start_time;
-        loiter_time = millis();
+        AP::ptp().get_time(&get_time);
+        loiter_time = get_time.time_sec;
 		if (loiter_time_max > 0) {
 			// play a tone
 			AP_Notify::events.waypoint_complete = 1;
 			}
     }
-
+    AP::ptp().get_time(&get_time);
     // check if timer has run out
-    if (((millis()/ 1000) >= loiter_time_max)) { //need modify, millis() -> ptp time
+    if (get_time.time_sec >= loiter_time_max) { 
 		if (loiter_time_max == 0) {
 			// play a tone
 			AP_Notify::events.waypoint_complete = 1;

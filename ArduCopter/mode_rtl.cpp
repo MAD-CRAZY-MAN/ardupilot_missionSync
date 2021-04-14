@@ -263,9 +263,10 @@ void ModeRTL::loiterathome_run()
         // roll, pitch from waypoint controller, yaw heading from auto_heading()
         attitude_control->input_euler_angle_roll_pitch_yaw(wp_nav->get_roll(), wp_nav->get_pitch(), auto_yaw.yaw(),true);
     }
-
+    _timespec get_time;
+    AP::ptp().get_time(&get_time);
     // check if we've completed this stage of RTL
-    if ((millis()/1000) >= next_start_time) {
+    if (get_time.time_sec >= next_start_time) {
         if (auto_yaw.mode() == AUTO_YAW_RESETTOARMEDYAW) {
             // check if heading is within 2 degrees of heading when vehicle was armed
             if (abs(wrap_180_cd(ahrs.yaw_sensor-copter.initial_armed_bearing)) <= 200) {
