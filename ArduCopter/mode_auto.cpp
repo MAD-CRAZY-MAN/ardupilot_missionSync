@@ -264,7 +264,7 @@ void ModeAuto::land_start(const Vector3f& destination)
         pos_control->set_alt_target(inertial_nav.get_altitude());
         pos_control->set_desired_velocity_z(inertial_nav.get_velocity_z());
     }
-    
+          
     // initialise yaw
     auto_yaw.set_mode(AUTO_YAW_HOLD);
 
