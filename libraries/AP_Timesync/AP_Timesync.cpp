@@ -1,4 +1,5 @@
 #include <AP_Timesync/AP_Timesync.h>
+
 extern const AP_HAL::HAL& hal;
 
 _timespec AP_Timesync::t1;

@@ -70,8 +70,6 @@ void ModeRTL::run(bool disarm_on_land)
             // do nothing
             break;
         case RTL_Land:
-            AP::ptp().takeoff_time.time_sec = 0;
-            next_start_time = 0;
             // do nothing - rtl_land_run will take care of disarming motors
             break;
         }
