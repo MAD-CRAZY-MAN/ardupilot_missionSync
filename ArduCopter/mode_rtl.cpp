@@ -206,7 +206,7 @@ void ModeRTL::loiterathome_start()
     _state_complete = false;
     _loiter_start_time = next_start_time;
     next_start_time += target_time + delay;
-
+    gcs().send_text(MAV_SEVERITY_INFO, "loiter at home completed time(plan): %d", next_start_time);
     // yaw back to initial take-off heading yaw unless pilot has already overridden yaw
     if(auto_yaw.default_mode(true) != AUTO_YAW_HOLD) {
         auto_yaw.set_mode(AUTO_YAW_RESETTOARMEDYAW);
@@ -268,11 +268,13 @@ void ModeRTL::loiterathome_run()
         if (auto_yaw.mode() == AUTO_YAW_RESETTOARMEDYAW) {
             // check if heading is within 2 degrees of heading when vehicle was armed
             if (abs(wrap_180_cd(ahrs.yaw_sensor-copter.initial_armed_bearing)) <= 200) {
+                gcs().send_text(MAV_SEVERITY_INFO, "loiter at home completed time: %d", get_time.time_sec);
                 _state_complete = true;
             }
         } else {
             // we have loitered long enough
             _state_complete = true;
+            gcs().send_text(MAV_SEVERITY_INFO, "loiter at home completed time: %d", get_time.time_sec);
         }
     }
     /* time sync 안했을 때 구분 필요(파라미터)

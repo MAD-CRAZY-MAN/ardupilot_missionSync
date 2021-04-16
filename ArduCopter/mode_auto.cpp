@@ -56,7 +56,7 @@ bool ModeAuto::init(bool ignore_checks)
 //      relies on run_autopilot being called at 10hz which handles decision making and non-navigation related commands
 Location Mode::last_wp_loc;
 uint32_t Mode::next_start_time = 0;
-uint32_t Mode::delay = 5;
+uint32_t Mode::delay = 10;
 uint32_t Mode::target_time = 10;
 bool Mode::takeoff_complete = 0;
 void ModeAuto::run()
@@ -1547,10 +1547,11 @@ bool ModeAuto::verify_takeoff()
     // have we reached our target altitude?
     const bool reached_wp_dest = copter.wp_nav->reached_wp_destination();
     _timespec get_time;
-    if(!next_start_time) //takeoff가 끝나고 다음 미션의 시작 time을 저장
+    if(AP::ptp().takeoff_time.time_sec >= next_start_time) //takeoff가 끝나고 다음 미션의 시작 time을 저장
     {
+        takeoff_complete = false;
         next_start_time = AP::ptp().takeoff_time.time_sec + target_time + delay; 
-        gcs().send_text(MAV_SEVERITY_INFO, "takeoff completed time plan: %d", next_start_time);
+        gcs().send_text(MAV_SEVERITY_INFO, "takeoff completed time(plan): %d", next_start_time);
     }
     // retract the landing gear
     if (reached_wp_dest) {
@@ -1863,7 +1864,7 @@ bool ModeAuto::verify_nav_wp(const AP_Mission::Mission_Command& cmd)
         loiter_time_max = next_start_time;
         AP::ptp().get_time(&get_time);
         loiter_time = get_time.time_sec;
-        gcs().send_text(MAV_SEVERITY_INFO, "#%i start time plan:%d", cmd.index, loiter_time_max);
+        gcs().send_text(MAV_SEVERITY_INFO, "#%i completed time plan:%d", cmd.index, loiter_time_max);
 		if (loiter_time_max > 0) {
 			// play a tone
 			AP_Notify::events.waypoint_complete = 1;
@@ -1876,8 +1877,8 @@ bool ModeAuto::verify_nav_wp(const AP_Mission::Mission_Command& cmd)
 			// play a tone
 			AP_Notify::events.waypoint_complete = 1;
 			}
-        gcs().send_text(MAV_SEVERITY_INFO, "time: %d", get_time.time_sec);
         gcs().send_text(MAV_SEVERITY_INFO, "Reached command #%i",cmd.index);
+        gcs().send_text(MAV_SEVERITY_INFO, "time: %d", get_time.time_sec);
         return true;
     }
     return false;
