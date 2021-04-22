@@ -56,7 +56,7 @@ bool ModeAuto::init(bool ignore_checks)
 //      relies on run_autopilot being called at 10hz which handles decision making and non-navigation related commands
 Location Mode::last_wp_loc;
 uint32_t Mode::next_start_time = 0;
-uint32_t Mode::delay = 10;
+uint32_t Mode::delay = 5;
 uint32_t Mode::target_time = 10;
 bool Mode::takeoff_complete = 0;
 void ModeAuto::run()
