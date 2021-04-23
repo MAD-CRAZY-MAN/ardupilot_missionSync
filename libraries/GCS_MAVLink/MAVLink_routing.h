@@ -22,6 +22,10 @@ public:
 
     /*
       forward a MAVLink message to the right port. This also
+      automatically learns the route for the sender if it is not
+      already known.
+      
+      This returns true if the message should be processed locally
       automatically learns the route for the sender ifnnel_t in_channel, const mavlink_message_t &msg)
 {
     // handle the case of loopback of our own messages, due to
