@@ -15,3 +15,5 @@
 #define FW_MINOR 0
 #define FW_PATCH 5
 #define FW_TYPE FIRMWARE_VERSION_TYPE_OFFICIAL
+
+#define FW_VENDOR

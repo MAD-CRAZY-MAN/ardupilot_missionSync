@@ -2125,6 +2125,11 @@ void GCS_MAVLINK::send_autopilot_version() const
         os_custom_version[sizeof(os_custom_version) - 1] = '\0';
     }
 
+    if(!strcmp(CHIBIOS_SHORT_BOARD_NAME, "thepeach-r1"))
+         product_id = 35;
+    else if(!strcmp(CHIBIOS_SHORT_BOARD_NAME, "thepeach-k1"))
+         product_id = 34;
+        
     mavlink_msg_autopilot_version_send(
         chan,
         capabilities(),
