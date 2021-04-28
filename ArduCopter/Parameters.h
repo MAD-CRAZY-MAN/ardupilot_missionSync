@@ -370,13 +370,14 @@ public:
         k_param_autotune_min_d, // remove
         k_param_arming, // 252  - AP_Arming
         k_param_logger = 253, // 253 - Logging Group
+        k_param_test_nsh,
 
         // 254,255: reserved
 
         // the k_param_* space is 9-bits in size
         // 511: reserved
     };
-
+    AP_Int16        test_nsh;
     AP_Int16        format_version;
 
     // Telemetry control
