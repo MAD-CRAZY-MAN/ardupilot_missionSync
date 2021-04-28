@@ -38,7 +38,6 @@
 #ifndef CONFIG_HAL_BOARD
 #error CONFIG_HAL_BOARD must be defined to build ArduCopter
 #endif
-#define TEST        11
 //////////////////////////////////////////////////////////////////////////////
 // HIL_MODE                                 OPTIONAL
 

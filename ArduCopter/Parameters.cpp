@@ -36,13 +36,6 @@
 #endif
 
 const AP_Param::Info Copter::var_info[] = {
-    // @Param: TEST
-    // @DisplayName: Eeprom format version number
-    // @Description: This value is incremented when changes are made to the eeprom format
-    // @User: Advanced
-    // @ReadOnly: True
-    GSCALAR(test_nsh, "TEST",   TEST),
-
     // @Param: SYSID_SW_MREV
     // @DisplayName: Eeprom format version number
     // @Description: This value is incremented when changes are made to the eeprom format
