@@ -462,6 +462,7 @@ private:
     AP_Float    _custom_roll;
     AP_Float    _custom_pitch;
     AP_Float    _custom_yaw;
+    AP_Int16     _my_new_lib_parameter;
     
     // throttle expressed as a percentage from 0 ~ 1.0, used for motor compensation
     float       _thr;
